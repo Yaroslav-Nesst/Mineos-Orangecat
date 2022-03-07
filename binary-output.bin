@@ -61,8 +61,8 @@ end
 local function w() q.setForeground(q.setBackground(q.getForeground())) end
 local function x() q.fill(1, 1, t, u, " ") end
 local function y(z, A)
-    q.setBackground(z or 0x424242)
-    q.setForeground(A or 0)
+    q.setBackground(z or 0xA35A00)
+    q.setForeground(A or 0x424242)
 end
 local function B(z, A)
     y(z, A)
