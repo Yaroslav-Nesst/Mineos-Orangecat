@@ -1,0 +1,109 @@
+local function a(type) return component.proxy(component.list(type)() or "") end
+local b = a("eeprom")
+local c = a("internet")
+local d = component.invoke;
+computer.setArchitecture = nil;
+local component, error, xpcall, assert, e, checkArg, pairs, type, f, g =
+    component, error, xpcall, assert, computer.shutdown, checkArg, pairs, type,
+    table.unpack, debug.traceback;
+local h = {
+    makeReadonly = false,
+    get = "",
+    set = {nil, "storage is read-only"},
+    setData = {nil, "storage is read-only"},
+    getData = "",
+    getChecksum = ""
+}
+local function i(j, k, ...)
+    checkArg(1, j, "string")
+    checkArg(2, k, "string")
+    if j == b.address then
+        for l, m in pairs(h) do
+            if l == k then
+                local n = type(m)
+                if n == "table" then
+                    return f(m)
+                elseif n == "function" then
+                    return m(...)
+                else
+                    return m
+                end
+            end
+        end
+        return d(j, k, ...)
+    else
+        return d(j, k, ...)
+    end
+end
+local function o() component.invoke = i end
+local function p() component.invoke = d end
+local q = a("gpu")
+local r;
+local s;
+local t, u;
+local function v()
+    q = {}
+    setmetatable(q, {__index = function() error("gpu and screen required") end})
+end
+if not q then
+    v()
+else
+    r = component.list("screen")()
+    if r then
+        q.bind(r)
+        t, u = q.getResolution()
+        s = component.invoke(r, "getKeyboards")[1]
+    else
+        v()
+    end
+end
+local function w() q.setForeground(q.setBackground(q.getForeground())) end
+local function x() q.fill(1, 1, t, u, " ") end
+local function y(z, A)
+    q.setBackground(z or 0xA35A00)
+    q.setForeground(A or 0x424242)
+end
+local function B(z, A)
+    y(z, A)
+    x()
+end
+local function C(D, E) q.set(math.ceil(t / 2 - unicode.len(D) / 2), E, D) end
+local function F(G, H, I)
+    local J = I or 1;
+    local E = u // 2 - #H // 2 - 1;
+    if E < 0 then E = 0 end
+    while true do
+        B()
+        local K = J // u * u;
+        local L = E;
+        if K == 0 then
+            if q.getDepth() == 1 then
+                w()
+                C(G, 1 + L)
+                w()
+            else
+                C(G, 1 + L)
+                y(nil, 0xFF8C00)
+            end
+        else
+            L = 0
+        end
+        for M = 1, #H do
+            local N = M + 1 + L - K;
+            if N >= 1 and N <= u then
+                if s and J == M then w() end
+                C(H[M], N)
+                if s and J == M then w() end
+            end
+        end
+        local O, P, Q, R, S = computer.pullSignal()
+        if O == "key_down" and P == s then
+            if R == 200 and J > 1 then J = J - 1 end
+            if R == 208 and J < #H then J = J + 1 end
+            if R == 28 then return J end
+        elseif O == "touch" and P == r and S == 0 then
+            R = R + K - L;
+            R = R - 1;
+            if R >= 1 and R <= #H then return R end
+        elseif O == "scroll" and P == r then
+            if S == 1 and J > 1 
